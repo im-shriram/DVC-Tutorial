@@ -71,7 +71,7 @@ def load_model(model_dir: str, sample_input: pd.DataFrame) -> BaggingClassifier:
     logger.info(f"Logging model using MLflow from {model_path}")
     sample_output = model.predict(sample_input)
     signature = mlflow.models.infer_signature(sample_input, sample_output) # This is automatic signature. You can also define it manually by defining the datatype of every single feature in your dataframe.
-    mlflow.sklearn.log_model(model, signature=signature, registered_model_name="bagging_classifier", name="bagging_classifier")
+    mlflow.sklearn.log_model(model, signature=signature, name="bagging_classifier")
     # NOTE: If the name of the registered model is same as previous one, then it will be considered as new version of that same model.
 
     client = mlflow.tracking.MlflowClient()
@@ -183,7 +183,7 @@ def main() -> None:
     logger.info(msg="Started model evaluation pipeline")
 
     # Set up MLflow tracking URI
-    mlflow.set_tracking_uri(f'http://ec2-13-232-128-22.ap-south-1.compute.amazonaws.com:8080/')
+    mlflow.set_tracking_uri(f'http://127.0.0.1:8080')
 
     # Forming directory paths
     home_dir = pathlib.Path(__file__).parent.parent.parent
@@ -196,8 +196,10 @@ def main() -> None:
     dvclive_path = home_dir / "dvclive"
 
     # Creating new experiment
-    # experiment_id = mlflow.create_experiment(name="sentement_analysis_experiment_tracking") # If experiment already exists then dont create it again otherwise throw error. # TODO: Handle exception if experiment already exists.
-    experiment_id = mlflow.get_experiment_by_name(name="sentement_analysis_experiment_tracking").experiment_id
+    if mlflow.get_experiment_by_name(name="sentement_analysis_experiment_tracking") is None:
+        experiment_id = mlflow.create_experiment(name="sentement_analysis_experiment_tracking") # If experiment already exists then dont create it again otherwise throw error. # TODO: Handle exception if experiment already exists.
+    else: 
+        experiment_id = mlflow.get_experiment_by_name(name="sentement_analysis_experiment_tracking").experiment_id
 
     tags = {
         "engineering": "ML Platform",

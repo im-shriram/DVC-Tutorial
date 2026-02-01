@@ -12,12 +12,12 @@ model_training:
     max_depth: 3
     min_samples_split: 5
     min_samples_leaf: 2
-    estimator_max_features: 0.75
+    estimator_max_features: 0.85
     estimator_random_state: 42
   
   bagging:
     n_estimators: 500
-    max_samples: 0.75
+    max_samples: 0.85
     bagging_max_features: 1.0
     bootstrap: False
     bootstrap_features: False 

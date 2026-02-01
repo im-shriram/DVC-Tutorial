@@ -2,50 +2,57 @@ stages:
   data_ingestion:
     cmd: python src/data/data_ingestion.py
     deps:
-    - src/data/data_ingestion.py
-    - data/raw/train.csv
-    - params.yaml
+      - src/data/data_ingestion.py
+      - data/raw/train.csv
+      - params.yaml
     outs:
-    - data/interim/train.csv
-    - data/interim/test.csv
+      - data/interim/train.csv
+      - data/interim/test.csv
 
   data_preprocessing:
     cmd: python src/features/data_preprocessing.py
     deps:
-    - src/features/data_preprocessing.py
-    - data/interim/train.csv
-    - data/interim/test.csv
-    - data/external/chat_words_dictonary.json
+      - src/features/data_preprocessing.py
+      - data/interim/train.csv
+      - data/interim/test.csv
+      - data/external/chat_words_dictonary.json
     outs:
-    - data/processed/train.csv
-    - data/processed/test.csv
+      - data/processed/train.csv
+      - data/processed/test.csv
 
   feature_engineering:
     cmd: python src/features/feature_engineering.py
     deps:
-    - src/features/feature_engineering.py
-    - data/processed/train.csv
-    - data/processed/test.csv
-    - params.yaml
+      - src/features/feature_engineering.py
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - params.yaml
     outs:
-    - data/features/train.csv
-    - data/features/test.csv
-    - models/vectorizers/bow.joblib
+      - data/features/train.csv
+      - data/features/test.csv
+      - models/vectorizers/bow.joblib
 
   model_training:
     cmd: python src/models/train_model.py
     deps:
-    - src/models/train_model.py
-    - data/features/train.csv
-    - params.yaml
+      - src/models/train_model.py
+      - data/features/train.csv
+      - params.yaml
     outs:
-    - models/models/bagging_classifier.joblib
+      - models/models/bagging_classifier.joblib
 
   model_evaluation:
     cmd: python src/models/evaluate_model.py
     deps:
-    - models/models/bagging_classifier.joblib
-    - data/features/test.csv
+      - models/models/bagging_classifier.joblib
+      - data/features/test.csv
+
+  model_registration:
+    cmd: python src/models/register_model.py
+    deps:
+      - src/models/register_model.py
+      - data/features/test.csv
+    # No explicit output needed unless you want to track a registration log
 
 artifacts:
   BaggingClassifier:
@@ -58,4 +65,4 @@ artifacts:
     path: data/features/test.csv
     type: dataset
 params:
-- dvclive/params.yaml
+  - dvclive/params.yaml

@@ -1,0 +1,5 @@
+outs:
+- md5: d5374fbe39d349c14db3bc37d73d76be
+  size: 2974
+  hash: md5
+  path: chat_words_dictonary.json
