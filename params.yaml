@@ -1,0 +1,27 @@
+data_ingestion:
+  seed: 42
+  test_size: 0.20
+
+feature_engineering:
+  bow_max_features: 500
+
+model_training:
+  estimator:
+    criterion: "gini"
+    splitter: "best"
+    max_depth: 3
+    min_samples_split: 5
+    min_samples_leaf: 2
+    estimator_max_features: 0.75
+    estimator_random_state: 42
+  
+  bagging:
+    n_estimators: 500
+    max_samples: 0.75
+    bagging_max_features: 1.0
+    bootstrap: False
+    bootstrap_features: False 
+    oob_score: False
+    warm_start: False
+    bagging_random_state: 42
+    verbose: 1
