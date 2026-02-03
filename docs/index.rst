@@ -1,9 +1,9 @@
-.. Emotion Detection documentation master file, created by
+.. DVC Tutorial documentation master file, created by
    sphinx-quickstart.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Emotion Detection documentation!
+DVC Tutorial documentation!
 ==============================================
 
 Contents:

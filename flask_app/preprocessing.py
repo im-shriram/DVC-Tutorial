@@ -1,4 +1,3 @@
-# Importing necessary libraries
 import pandas as pd
 import pathlib
 import re
@@ -7,33 +6,12 @@ from textblob import TextBlob
 import emoji
 import logging
 from typing import Tuple, Dict
+
+# Downloading the stopwords and wordnet - Error while running the docker container
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-
-# Loading Dataset
-def load_data(data_dir: str) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, str]]:
-    logger = logging.getLogger(__name__)
-
-    # Forming file paths
-    train_path = data_dir / "interim" / "train.csv"
-    test_path = data_dir / "interim" / "test.csv"
-    chat_words = data_dir / "external" / "chat_words_dictonary.json"
-
-    logger.info(f"Loading dataset from {data_dir / "interim"}")
-
-    # Loading datasets
-    train_df = pd.read_csv(filepath_or_buffer=train_path)
-    test_df = pd.read_csv(filepath_or_buffer=test_path)
-
-    # Loading chat word dictonary
-    with open(file=chat_words, mode='r') as f:
-        chat_words_map = json.load(f)
-
-    # Returning datasets
-    return (train_df, test_df, chat_words_map)
-
-# Preprocessing
 def preprocessing(df: pd.DataFrame, chat_words_map: Dict[str, str]):
     logger = logging.getLogger(__name__)
     
@@ -94,63 +72,3 @@ def preprocessing(df: pd.DataFrame, chat_words_map: Dict[str, str]):
 
     # Return the precessed dataset
     return df
-
-# Save the dataset
-def save_data(train_df: pd.DataFrame, test_df: pd.DataFrame, save_dir: str) -> None:
-    logger = logging.getLogger(__name__)
-
-    # Forming the save path
-    save_path = save_dir / "processed"
-    save_path.mkdir(parents=True, exist_ok=True)
-
-    logger.info(f"Saving the preprocessed datasets to {save_path}")
-
-    # Saving the datasets
-    train_df.to_csv(path_or_buf=save_path / "train.csv", index=False)
-    test_df.to_csv(path_or_buf=save_path / "test.csv", index=False)
-
-def form_logger() -> logging.Logger:
-    logger = logging.getLogger()
-    logger.setLevel(level=logging.DEBUG)
-
-    # Create console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(level=logging.DEBUG)
-
-    # Create a formatter
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-
-    if not logger.handlers:
-        logger.addHandler(console_handler)
-    
-    return logger
-
-# main function
-def main() -> None:
-    # Forming Logger
-    logger = form_logger()
-
-    logger.info("Starting data preprocessing pipeline")
-
-    # Forming directory paths
-    home_dir = pathlib.Path(__file__).parent.parent.parent
-    data_dir = home_dir / "data"
-    logger.info(f"Working directory: {home_dir}")
-
-    # Loading Data
-    train_df, test_df, chat_words_map = load_data(data_dir=data_dir)
-
-    # Preprocessing Data
-    logger.info(f"Started preprocessing train dataset")
-    train_df = preprocessing(df=train_df, chat_words_map=chat_words_map)
-
-    logger.info(f"Started preprocessing test dataset")
-    test_df = preprocessing(df=test_df, chat_words_map=chat_words_map)
-
-    # Saving the preprocessed data
-    save_data(train_df=train_df, test_df=test_df, save_dir=data_dir)
-
-    logger.info("Data preprocessing completed successfully")
-if __name__ == "__main__":
-    main()

@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 from typing import Any
 import joblib
+import json
 from sklearn.metrics import f1_score
 
 # Loading Data
@@ -23,23 +24,11 @@ def load_local_model(model_dir: pathlib.Path) -> Any:
     logger.info(f"Loading local model from {model_path}")
     return joblib.load(filename=model_path)
 
-def get_latest_run_info(experiment_name: str) -> tuple[str, str]:
-    experiment = mlflow.get_experiment_by_name(experiment_name)
-    if experiment is None:
-        raise ValueError(f"Experiment '{experiment_name}' not found")
-    
-    runs = mlflow.search_runs(
-        experiment_ids=[experiment.experiment_id],
-        order_by=["start_time DESC"],
-        max_results=1
-    )
-    print(runs.columns)
-    if runs.empty:
-        raise ValueError(f"No runs found in experiment '{experiment_name}'")
-    
-    run_id = runs.iloc[0].run_id
-    model_uri = f"runs:/{run_id}/bagging_classifier"
-    return model_uri, run_id
+def get_latest_run_info() -> str:
+    with open(file="reports/experiment_info.json") as f:
+        experiment_info = json.load(fp=f)
+        model_uri = f"runs:/{experiment_info["run_id"]}/{experiment_info["model_path"]}" # NOTE: This `bagging_classifier` is the `name` passed during logging the model in `model_evaluation`
+    return model_uri
 
 def register_model(experiment_name: str, production_model_name: str, archive_model_name: str, data_dir: pathlib.Path, model_dir: pathlib.Path, client: MlflowClient, production_version: int, archive_version: int) -> None:
     logger = logging.getLogger(name=__name__)
@@ -51,7 +40,7 @@ def register_model(experiment_name: str, production_model_name: str, archive_mod
 
     # 1. Load the latest local model (just trained)
     latest_model = load_local_model(model_dir=model_dir)
-    latest_model_uri, latest_run_id = get_latest_run_info(experiment_name)
+    latest_model_uri= get_latest_run_info()
     
     # 2. Try to load the PRODUCTION model
     production_model = None
@@ -89,9 +78,18 @@ def register_model(experiment_name: str, production_model_name: str, archive_mod
             mlflow.register_model(model_uri=latest_model_uri, name=production_model_name)
             client.set_registered_model_alias(name=production_model_name, alias="production", version=production_version) # NOTE: The production alias automatically transferred from v1 to v6
             logger.info("Model registered successfully.")
+
+            # current model to archive
+
         except Exception as e:
             logger.error(f"Failed to register model: {e}")
             logger.error("TIP: Ensure evaluate_model.py uses mlflow.sklearn.log_model(model, artifact_path='model')")
+    
+    # NOTE: Model Registry -> old vs new model uri
+    """
+        old_way_model_uri = f"models:/{model_name}/{model_version}"
+        new_way_model_uri = f"runs:/<run_id>/{artifact_path_while_logging_the_model}"
+    """
 
 # Forming Logger
 def form_logger() -> logging.Logger:
@@ -115,11 +113,11 @@ def main() -> None:
     model_path = home_dir / "models"
 
     # Need to change for every run
-    experiment_name = "sentement_analysis_experiment_tracking"
+    experiment_name = "emotion_detection_model_registry"
     production_model_name = "bagging_classifier"
     archive_model_name = "bagging_classifier"
-    production_version = 4
-    archive_version = 3 
+    production_version = 3 # NOTE: The production model version should be 1 if no production model available
+    archive_version = 2
 
     register_model(
         experiment_name=experiment_name,

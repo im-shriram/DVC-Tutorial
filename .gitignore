@@ -75,7 +75,14 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
-# exclude data from source control by default
+# exclude data and models from source control by default
+/data/features
+/data/interim
+/data/processed
+
+/models/
+
+/%TEMP%/
 
 # Mac OS-specific storage files
 .DS_Store
@@ -87,8 +94,9 @@ target/
 # Mypy cache
 .mypy_cache/
 
-# vscode setting
-.vscode
+# References
+/references/mlflow-aws error resolution.pdf
 
-# mlartifacts 
-mlartifacts
+# MLflow experiments folder
+/mlartifacts
+/mlruns
