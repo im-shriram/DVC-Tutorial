@@ -1,6 +1,6 @@
 data_ingestion:
   seed: 42
-  test_size: 0.225
+  test_size: 0.20
 
 feature_engineering:
   bow_max_features: 100

@@ -1,10 +1,14 @@
+# Importing necessary libraries
 import pandas as pd
 import json
 import joblib
-import mlflow
-mlflow.set_tracking_uri(f'https://dagshub.com/Shriram-Vibhute/DVC-Tutorial.mlflow')
-dagshub.init(repo_owner='Shriram-Vibhute', repo_name='DVC-Tutorial', mlflow=True)
+
 from flask import Flask, request, render_template
+
+import mlflow
+import dagshub
+mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
+dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
 
 # Preprocessing
 from preprocessing import preprocessing
@@ -28,7 +32,7 @@ def encode_features(df):
 
 # Model Loading from mlflow model registry
 model_name = "bagging_classifier"
-production_model_uri = f"models:/{model_name}@production" 
+production_model_uri = f"models:/{model_name}@staging" # TODO: change to production
 model = mlflow.pyfunc.load_model(model_uri=production_model_uri)
 
 # Model Serving

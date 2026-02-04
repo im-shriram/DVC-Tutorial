@@ -47,13 +47,6 @@ stages:
       - models/models/bagging_classifier.joblib
       - data/features/test.csv
 
-  model_registration:
-    cmd: python src/models/register_model.py
-    deps:
-      - src/models/register_model.py
-      - data/features/test.csv
-    # No explicit output needed unless you want to track a registration log
-
 artifacts:
   BaggingClassifier:
     path: models/models/bagging_classifier.joblib

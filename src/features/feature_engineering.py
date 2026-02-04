@@ -1,4 +1,4 @@
-# Importing necessary libraries
+# Step 1: Import necessary libraries for data manipulation, logging, and vectorization
 import pandas as pd
 from typing import Tuple, Dict, Any
 import logging
@@ -8,130 +8,145 @@ import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 
 
-# Loading Dataset
-def load_data(data_dir: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+# Function to load the cleaned datasets from the 'processed' folder
+def load_data(data_dir: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
     logger = logging.getLogger(__name__)
 
-    # Forming file paths
+    # Form the directory paths for the preprocessed training and testing files
     train_path = data_dir / "processed" / "train.csv"
     test_path = data_dir / "processed" / "test.csv"
 
-    logger.info(f"Loading dataset from {data_dir / "processed"}")
+    logger.info(f"Loading preprocessed datasets from the directory: {data_dir / 'processed'}")
 
-    # Loading datasets
+    # Read the data and ensure no missing values are present before feature creation
     train_df = pd.read_csv(filepath_or_buffer=train_path)
     test_df = pd.read_csv(filepath_or_buffer=test_path)
 
-    # Returning datasets
+    # Return the DataFrames with any NaN values removed
     return (train_df.dropna(), test_df.dropna())
 
-# Loading Parameters
+# Function to load feature engineering parameters from the configuration file
 def load_params(params_path: pathlib.Path) -> Dict[str, Any]:
     logger = logging.getLogger(__name__)
-    logger.info(f"Loading parameters from {params_path}")
+    logger.info(f"Accessing configuration parameters from: {params_path}")
+    
     with open(file=params_path, mode='r') as f:
         params = yaml.safe_load(f)
         
-        # Check if 'make_dataset' key exists in params
+        # Check if the 'feature_engineering' section is defined in the YAML file
         if 'feature_engineering' not in params:
-            logger.error("'feature_engineering' section not found in parameters file")
+            logger.error("The required 'feature_engineering' configuration section is missing!")
             raise KeyError("'feature_engineering' section not found in parameters file")
         
-        logger.debug(f"Parameters loaded: {params['feature_engineering']}")
+        logger.debug(f"Feature engineering parameters successfully loaded: {params['feature_engineering']}")
         return params['feature_engineering']
 
-# Training and saving feature encoder
-def train_vectorizer(train_df: pd.DataFrame, max_features: int, save_path: str) -> CountVectorizer:
+# Function to train and save the Bag-of-Words (BOW) text vectorizer
+def train_vectorizer(train_df: pd.DataFrame, max_features: int, save_path: pathlib.Path) -> CountVectorizer:
     logger = logging.getLogger(__name__)
-    logger.info(msg="Training the `Bag-of-Word` vectorizer")
+    logger.info(f"Initializing training for the 'Bag-of-Words' vectorizer with a limit of {max_features} features")
 
+    # Create the directory where the vectorizer model will be saved
     save_path = save_path / "vectorizers"
     save_path.mkdir(parents=True, exist_ok=True)
 
-    # Forming and training the BOW vectorizer
+    # Initialize the vectorizer with the specified number of top frequent words
     vectorizer = CountVectorizer(max_features=max_features)
+    # Learn the vocabulary from the training data
     vectorizer.fit(train_df["content"].tolist())
 
-    # Saving the vectorizer
-    logger.info(msg="Saving the `Bag-of-Word` vectorizer")
+    # Save the trained vectorizer object to the disk for use in future predictions
+    logger.info(f"Saving the trained 'Bag-of-Words' model to: {save_path / 'bow.joblib'}")
     joblib.dump(value=vectorizer, filename=save_path / "bow.joblib")
+    
     return vectorizer
 
-# Transforming feature encoder
+# Function to transform text content into numerical features using the trained vectorizer
 def encoding_feature(df: pd.DataFrame, vectorizer: CountVectorizer) -> pd.DataFrame:
-    # Transform the entire content column at once instead of applying row by row
+    # Convert the 'content' column into a numerical matrix (Count matrix)
+    # We transform all rows at once to optimize performance
     content_transformed = vectorizer.transform(df['content'].values)
  
-    # Convert sparse matrix to dense array
+    # Combine the original DataFrame with the newly created numerical feature columns
+    # We convert the sparse matrix back to a standard format (dense array) for the final DataFrame
     df = pd.concat(objs=[df, pd.DataFrame(content_transformed.toarray())], axis=1)
+    
     return df
 
-# Save the dataset
-def save_data(train_df: pd.DataFrame, test_df: pd.DataFrame, save_dir: str) -> None:
+# Function to save the final engineered datasets into the 'features' folder
+def save_data(train_df: pd.DataFrame, test_df: pd.DataFrame, save_dir: pathlib.Path) -> None:
     logger = logging.getLogger(__name__)
 
-    # Forming the save path
+    # Form the directory path for the final feature files
     save_path = save_dir / "features"
     save_path.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Saving the transformed datasets to {save_path}")
+    logger.info(f"Writing final engineered datasets to: {save_path}")
 
-    # Saving the datasets
+    # Save the training and testing sets as CSV files for the model training stage
     train_df.to_csv(path_or_buf=save_path / "train.csv", index=False)
     test_df.to_csv(path_or_buf=save_path / "test.csv", index=False)
+    
+    logger.debug("Successfully saved engineered train.csv and test.csv")
 
-# Forming logger
+# Function to configure the system logger for terminal reporting
 def form_logger() -> logging.Logger:
     logger = logging.getLogger()
+    # Set to DEBUG to monitor vocabulary size and transformation details
     logger.setLevel(level=logging.DEBUG)
 
-    # Create console handler
+    # Setup the console handler for terminal output
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level=logging.DEBUG)
 
-    # Create a formatter
+    # Standard log layout: [Timestamp] - [Module Name] - [Level] - [Message]
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(formatter)
 
+    # Ensure handlers are not added multiple times in the same session
     if not logger.handlers:
         logger.addHandler(console_handler)
     
     return logger
 
 
-# main function
+# Main entry point for the feature engineering pipeline
 def main() -> None:
-    # Forming logger
+    # Setup the logger for tracking process execution
     logger = form_logger()
-    logger.info(msg="Started feature engineering pipeline")
+    logger.info("The feature engineering pipeline has officially started")
 
-    # Forming directory paths
+    # Resolve necessary directory paths for data and model artifacts
     home_dir = pathlib.Path(__file__).parent.parent.parent
     data_dir = home_dir / "data"
     params_path = home_dir / "params.yaml"
-    models_path = home_dir / "models" # The place where we save all the trainable artifacts
-    logger.info(f"Working directory: {home_dir}")
+    models_path = home_dir / "models" 
+    
+    logger.info(f"Project base path identified at: {home_dir}")
 
-    # Loading data
+    # Step 1: Load the cleaned datasets
+    logger.info("Step 1: Loading preprocessed training and testing data")
     train_df, test_df = load_data(data_dir=data_dir)
 
-    # Loading parameters
+    # Step 2: Load the engineering parameters (like max features)
+    logger.info("Step 2: Retrieving feature limits from the configuration file")
     params = load_params(params_path=params_path)
 
-    # Training encoder
+    # Step 3: Train the numerical encoder (Vectorizer)
+    logger.info("Step 3: Training the numerical text encoder on the training dataset")
     vectorizer = train_vectorizer(train_df=train_df, max_features=params["bow_max_features"], save_path=models_path)
 
-    # Transforming Features
-    logger.info(msg="Encoding train dataset")
+    # Step 4: Transform both datasets into numerical features
+    logger.info("Step 4: Applying transformations to encode train and test datasets")
     train_df_encoded = encoding_feature(df=train_df, vectorizer=vectorizer)
-
-    logger.info(msg="Encoding test dataset")
     test_df_encoded = encoding_feature(df=test_df, vectorizer=vectorizer)
 
-    # Saving the transformed data
+    # Step 5: Save the final datasets for model training
+    logger.info("Step 5: Saving the finalized numerical feature sets for the modeling stage")
     save_data(train_df=train_df_encoded, test_df=test_df_encoded, save_dir=data_dir)
 
-    logger.info("Feature Engineering completed successfully")
+    logger.info("Feature engineering stage has successfully completed!")
 
+# Execute the feature engineering script
 if __name__ == "__main__":
     main()
