@@ -2,13 +2,31 @@
 import pandas as pd
 import json
 import joblib
+import os
 
 from flask import Flask, request, render_template
 
 import mlflow
 import dagshub
-mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
-dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
+"""
+    mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
+    dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
+"""
+
+# Set up DagsHub credentials for MLflow tracking
+dagshub_token = os.getenv("DAGSHUB_PAT")
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+dagshub_url = "https://dagshub.com"
+repo_owner = "Shriram-Vibhute"
+repo_name = "Emotion-Detection-MLOps-Practices"
+
+# Set up MLflow tracking URI
+mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
 
 # Preprocessing
 from preprocessing import preprocessing
@@ -32,7 +50,7 @@ def encode_features(df):
 
 # Model Loading from mlflow model registry
 model_name = "bagging_classifier"
-production_model_uri = f"models:/{model_name}@staging" # TODO: change to production
+production_model_uri = f"models:/{model_name}@production"
 model = mlflow.pyfunc.load_model(model_uri=production_model_uri)
 
 # Model Serving

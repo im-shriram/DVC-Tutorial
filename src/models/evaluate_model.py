@@ -9,6 +9,7 @@ import yaml
 import json
 import mlflow
 import dagshub
+import os
 from mlflow import MlflowClient
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, precision_recall_curve
@@ -205,8 +206,24 @@ def main() -> None:
 
     # Connect to DagsHub for remote MLflow tracking
     logger.info("Initializing connection to DagsHub and setting up MLflow tracking URI")
-    mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
-    dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
+    """
+        mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
+        dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
+    """
+    # Set up DagsHub credentials for MLflow tracking
+    dagshub_token = os.getenv("DAGSHUB_PAT")
+    if not dagshub_token:
+        raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+    dagshub_url = "https://dagshub.com"
+    repo_owner = "Shriram-Vibhute"
+    repo_name = "Emotion-Detection-MLOps-Practices"
+
+    # Set up MLflow tracking URI
+    mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
     client = MlflowClient()
 
     # Determine project root and directory paths for data, params, and models

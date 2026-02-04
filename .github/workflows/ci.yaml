@@ -1,0 +1,58 @@
+name: Continuous Integration Pipeline
+
+on: push
+
+jobs:
+  project-testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip dependencies # Caching mechanism to speed up dependency installation
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Pull data from DVC
+        run: |
+          dvc pull
+
+      - name: run pipeline
+        env:
+          DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT}}
+        run: |
+          dvc repro
+
+      - name: Run model tests
+        run: |
+          python -m unittest tests/test_model.py
+
+      - name: Promote model to production
+        if: success()
+        run: |
+          python Scripts/promote_model.py
+
+      - name: Run Flask app tests
+        if: success()
+        run: python -m unittest tests/test_flask_app.py
