@@ -1,14 +1,12 @@
 import pandas as pd
-import pathlib
 import re
-import json
-from textblob import TextBlob
 import emoji
 import logging
-from typing import Tuple, Dict
+from typing import Dict
+from sklearn.feature_extraction.text import CountVectorizer
+
 
 # Downloading the stopwords and wordnet - Error while running the docker container
-import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
@@ -71,4 +69,13 @@ def preprocessing(df: pd.DataFrame, chat_words_map: Dict[str, str]):
     df["content"] = df["content"].apply(lambda tweet: " ".join([lemmatizer.lemmatize(word) for word in tweet.split()]))
 
     # Return the precessed dataset
+    return df
+
+
+def encoding_feature(df: pd.DataFrame, vectorizer: CountVectorizer) -> pd.DataFrame:
+    # Transform the entire content column at once instead of applying row by row
+    content_transformed = vectorizer.transform(df['content'].values)
+ 
+    # Convert sparse matrix to dense array
+    df = pd.concat(objs=[df, pd.DataFrame(content_transformed.toarray())], axis=1)
     return df

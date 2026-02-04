@@ -2,7 +2,8 @@ import pandas as pd
 import json
 import joblib
 import mlflow
-mlflow.set_tracking_uri(f'http://127.0.0.1:8080/')
+mlflow.set_tracking_uri(f'https://dagshub.com/Shriram-Vibhute/DVC-Tutorial.mlflow')
+dagshub.init(repo_owner='Shriram-Vibhute', repo_name='DVC-Tutorial', mlflow=True)
 from flask import Flask, request, render_template
 
 # Preprocessing
@@ -19,7 +20,7 @@ def normalize_text(text):
     return df
 
 # Feature Engineering
-from feature_engineering import encoding_feature
+from preprocessing import encoding_feature
 def encode_features(df):
     vectorizer = joblib.load('models/vectorizers/bow.joblib')
     df = encoding_feature(df=df, vectorizer=vectorizer)
