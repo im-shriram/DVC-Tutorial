@@ -33,7 +33,10 @@ repo_name = "Emotion-Detection-MLOps-Practices"
 mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
 
 # Preprocessing
-from preprocessing import preprocessing
+try:
+    from preprocessing import preprocessing
+except ImportError:
+    from app.preprocessing import preprocessing
 def normalize_text(text):
     # Since preprocessing function excepts the data in the form of dataframe
     df = pd.DataFrame(
@@ -46,7 +49,10 @@ def normalize_text(text):
     return df
 
 # Feature Engineering
-from preprocessing import encoding_feature
+try:
+    from preprocessing import encoding_feature
+except ImportError:
+    from app.preprocessing import encoding_feature
 def encode_features(df):
     vectorizer = joblib.load('models/vectorizers/bow.joblib')
     df = encoding_feature(df=df, vectorizer=vectorizer)
