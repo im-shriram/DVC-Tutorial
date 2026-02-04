@@ -1,8 +1,11 @@
 import mlflow
 import dagshub
 import os
+from dotenv import load_dotenv
 
 def promote_model():
+    # Load environment variables from .env file
+    load_dotenv()
     # Set up MLflow tracking URI
     """
         mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")

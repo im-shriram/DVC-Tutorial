@@ -13,6 +13,7 @@ import os
 from mlflow import MlflowClient
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, precision_recall_curve
+from dotenv import load_dotenv
 
 
 # Function to load training and testing datasets from the features directory
@@ -88,7 +89,7 @@ def load_model(model_dir: str, sample_input: pd.DataFrame, client: MlflowClient)
 
     # Assign a 'staging' alias to this model version so we know it is ready for further testing
     logger.info("Assigning 'staging' alias to the newly registered model in the registry")
-    client.set_registered_model_alias(name="bagging_classifier", alias="staging", version=2)
+    client.set_registered_model_alias(name="bagging_classifier", alias="staging", version=5)
 
     # Note on Model Signatures:
     """
@@ -200,6 +201,9 @@ def form_logger() -> logging.Logger:
 
 # Main entry point for the evaluation process
 def main() -> None:
+    # Load environment variables from .env file
+    load_dotenv()
+
     # Initialize the logger to track progress
     logger = form_logger()
     logger.info("The model evaluation pipeline has officially started")

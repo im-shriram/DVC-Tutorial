@@ -4,11 +4,14 @@ import mlflow
 import dagshub
 import os
 import pandas as pd
+from dotenv import load_dotenv
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 class TestModelLoading(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Load environment variables from .env file
+        load_dotenv()
         # Set up MLflow tracking URI
         """
             mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")

@@ -3,6 +3,10 @@ import pandas as pd
 import json
 import joblib
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from flask import Flask, request, render_template
 

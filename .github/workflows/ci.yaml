@@ -5,6 +5,8 @@ on: push
 jobs:
   project-testing:
     runs-on: ubuntu-latest
+    env:
+      DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }} # This line was previously written in `run pipeline` stage
 
     steps:
       - name: checkout code
@@ -39,8 +41,6 @@ jobs:
           dvc pull
 
       - name: run pipeline
-        env:
-          DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT}}
         run: |
           dvc repro
 

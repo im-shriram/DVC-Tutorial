@@ -17,6 +17,7 @@ from sklearn.metrics import (
 import mlflow
 from mlflow import MlflowClient
 import dagshub
+from dotenv import load_dotenv
 
 # Minimum threshold values for model registration - Model must exceed ALL thresholds to be promoted to production
 ACCURACY_THRESHOLD = 0.5
@@ -201,6 +202,8 @@ def form_logger() -> logging.Logger:
     return logger
 
 def main() -> None:
+    # Load environment variables from .env file
+    load_dotenv()
     """
         Main entry point for the model registration pipeline.
     """
