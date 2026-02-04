@@ -7,6 +7,9 @@ from textblob import TextBlob
 import emoji
 import logging
 from typing import Tuple, Dict
+
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
