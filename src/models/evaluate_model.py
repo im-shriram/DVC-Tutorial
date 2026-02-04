@@ -89,7 +89,7 @@ def load_model(model_dir: str, sample_input: pd.DataFrame, client: MlflowClient)
 
     # Assign a 'staging' alias to this model version so we know it is ready for further testing
     logger.info("Assigning 'staging' alias to the newly registered model in the registry")
-    client.set_registered_model_alias(name="bagging_classifier", alias="staging", version=5)
+    client.set_registered_model_alias(name="bagging_classifier", alias="staging", version=8)
 
     # Note on Model Signatures:
     """

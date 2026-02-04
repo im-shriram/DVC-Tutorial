@@ -33,7 +33,7 @@ RUN adduser \
     appuser
 
 # Copy the source code into the container.
-COPY flask_app/ /app/flask_app/
+COPY app/ /app/app/
 COPY models/vectorizers/bow.joblib /app/models/vectorizers/bow.joblib
 RUN mkdir -p /app/data/external/
 COPY data/external/chat_words_dictonary.json /app/data/external/chat_words_dictonary.json
@@ -43,7 +43,7 @@ COPY data/external/chat_words_dictonary.json /app/data/external/chat_words_dicto
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install -r /app/flask_app/requirements.txt
+    python -m pip install -r /app/app/requirements.txt
 
 ENV NLTK_DATA=/app/nltk_data
 RUN mkdir -p ${NLTK_DATA} && python -c "import nltk; nltk.download('stopwords', download_dir='${NLTK_DATA}'); nltk.download('wordnet', download_dir='${NLTK_DATA}')"
@@ -57,4 +57,4 @@ USER appuser
 EXPOSE 5000
 
 # Run the application.
-CMD gunicorn 'flask_app.app:app' --bind=0.0.0.0:5000
+CMD gunicorn 'app.app:app' --bind=0.0.0.0:5000
