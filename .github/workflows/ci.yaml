@@ -98,7 +98,7 @@ jobs:
 
       - name: Deploy to EC2
         if: success()
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -106,13 +106,9 @@ jobs:
           script: |
             aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY_ID }}.dkr.ecr.ap-south-1.amazonaws.com
-
             docker pull ${{ secrets.ECR_REGISTRY_ID }}.dkr.ecr.ap-south-1.amazonaws.com/emotion-detection-ecr-repository:v1
-
             docker stop emotion-detection || true
             docker rm emotion-detection || true
-
             # Add -e DAGSHUB_PAT=${{ secrets.DAGSHUB_PAT }} 
             docker run -d --name emotion-detection -p 80:5000 -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -e DAGSHUB_PAT=${{ secrets.DAGSHUB_PAT }} ${{ secrets.ECR_REGISTRY_ID }}.dkr.ecr.ap-south-1.amazonaws.com/emotion-detection-ecr-repository:v1
