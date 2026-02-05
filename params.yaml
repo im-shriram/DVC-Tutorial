@@ -3,20 +3,20 @@ data_ingestion:
   test_size: 0.20
 
 feature_engineering:
-  bow_max_features: 100
+  bow_max_features: 2500
 
 model_training:
   estimator:
     criterion: "gini"
     splitter: "best"
-    max_depth: 5
+    max_depth: 8
     min_samples_split: 5
     min_samples_leaf: 2
     estimator_max_features: 0.80
     estimator_random_state: 42
 
   bagging:
-    n_estimators: 10
+    n_estimators: 250
     max_samples: 0.80
     bagging_max_features: 0.80
     bootstrap: False
