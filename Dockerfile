@@ -56,5 +56,5 @@ USER appuser
 # Expose the port that the application listens on.
 EXPOSE 5000
 
-# Run the application.
-CMD gunicorn 'app.app:app' --bind=0.0.0.0:5000
+# Run the application with an increased timeout for model loading.
+CMD gunicorn 'app.app:app' --bind=0.0.0.0:5000 --timeout 120

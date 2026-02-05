@@ -11,32 +11,29 @@ load_dotenv()
 from flask import Flask, request, render_template
 
 import mlflow
-import dagshub
-"""
-    mlflow.set_tracking_uri(uri="https://dagshub.com/Shriram-Vibhute/Emotion-Detection-MLOps-Practices.mlflow")
-    dagshub.init(repo_owner='Shriram-Vibhute', repo_name='Emotion-Detection-MLOps-Practices', mlflow=True)
-"""
-
 # Set up DagsHub credentials for MLflow tracking
 dagshub_token = os.getenv("DAGSHUB_PAT")
+
 if not dagshub_token:
-    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+    print("WARNING: DAGSHUB_PAT environment variable is not set!")
+    print("If you are running in Docker, use: docker run -e DAGSHUB_PAT=your_token ...")
+else:
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 
-os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
-os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+    dagshub_url = "https://dagshub.com"
+    repo_owner = "Shriram-Vibhute"
+    repo_name = "Emotion-Detection-MLOps-Practices"
 
-dagshub_url = "https://dagshub.com"
-repo_owner = "Shriram-Vibhute"
-repo_name = "Emotion-Detection-MLOps-Practices"
+    # Set up MLflow tracking URI
+    mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
 
-# Set up MLflow tracking URI
-mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
-
-# Preprocessing
 try:
-    from preprocessing import preprocessing
-except ImportError:
-    from app.preprocessing import preprocessing
+    from .preprocessing import preprocessing, encoding_feature
+except Exception as e:
+    from app.preprocessing import preprocessing, encoding_feature
+    
+# Preprocessing
 def normalize_text(text):
     # Since preprocessing function excepts the data in the form of dataframe
     df = pd.DataFrame(
@@ -49,10 +46,6 @@ def normalize_text(text):
     return df
 
 # Feature Engineering
-try:
-    from preprocessing import encoding_feature
-except ImportError:
-    from app.preprocessing import encoding_feature
 def encode_features(df):
     vectorizer = joblib.load('models/vectorizers/bow.joblib')
     df = encoding_feature(df=df, vectorizer=vectorizer)

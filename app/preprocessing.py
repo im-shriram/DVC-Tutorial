@@ -4,12 +4,6 @@ import emoji
 import logging
 from typing import Dict
 from sklearn.feature_extraction.text import CountVectorizer
-
-
-# Downloading the stopwords and wordnet - Error while running the docker container
-import nltk
-nltk.download('stopwords')
-nltk.download('wordnet')
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
