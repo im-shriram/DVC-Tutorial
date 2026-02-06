@@ -24,5 +24,9 @@ sudo /home/ubuntu/aws/install --update
 # Add 'ubuntu' user to the 'docker' group to run Docker commands without 'sudo'
 sudo usermod -aG docker ubuntu
 
+# Allow ubuntu user to run docker with sudo without password (for CodeDeploy)
+echo "ubuntu ALL=(ALL) NOPASSWD: /usr/bin/docker" | sudo tee /etc/sudoers.d/docker-ubuntu
+sudo chmod 0440 /etc/sudoers.d/docker-ubuntu
+
 # Clean up the AWS CLI installation files
 rm -rf /home/ubuntu/awscliv2.zip /home/ubuntu/aws
